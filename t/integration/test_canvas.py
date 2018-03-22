@@ -293,6 +293,17 @@ class test_chord:
         assert res.get() == [0, 5 + 6 + 7]
 
     @flaky
+    def test_add_chain_to_chord(self, manager):
+        if not manager.app.conf.result_backend.startswith('redis'):
+            raise pytest.skip('Requires redis result backend.')
+
+        existing_chain = (add.s([8]) | identity.s())
+        c = group([add_chord_to_chord.s([1, 2, 3], 4)]) | identity.s() | \
+            existing_chain
+        res = c()
+        assert res.get() == [0, 5 + 6 + 7, 8]
+
+    @flaky
     def test_group_chain(self, manager):
         if not manager.app.conf.result_backend.startswith('redis'):
             raise pytest.skip('Requires redis result backend.')
